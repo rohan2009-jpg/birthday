@@ -2,24 +2,33 @@
 <!--
   Happy 17th Birthday website for Meru 💕
 
-  Quick customization guide:
-  1. Name is now set to Rohan (letter + footer)
-  2. "Memory Lane" — images are already set to 1.jpg, 2.jpg, 3.jpg, 4.jpg – just put them in the same folder
-  3. YouTube link is already set to https://youtu.be/Te-xej8X_YI
-  4. "Pop A Balloon" — edit the text inside each .balloon-message paragraph to personalize
+  OPTIMIZED FOR SPEED:
+  - Fireworks now run for only 2-3 seconds (reduced particle count)
+  - Canvas operations streamlined (less overdraw)
+  - Throttled touch/mouse events for better performance
+  - Reduced DOM manipulations
+
+  Features:
+  1. Full-screen fireworks on load (2-3 sec duration)
+  2. Vertical scroll progress bar
+  3. Ripple + sparkle on every touch/click (optimized)
+  4. Days since birth counter
+  5. Balloon pop with messages
+  6. Cake wish interaction
 -->
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Happy 17th Birthday, Meru 🎀</title>
-    <meta property="og:title" content="Happy 17th Birthday, Meru 💕">
-    <meta property="og:description" content="A little something made just for you.">
-    <meta name="theme-color" content="#ff8fab">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta property="og:title" content="Happy 17th Birthday, Meru 💕" />
+    <meta property="og:description" content="A little something made just for you." />
+    <meta name="theme-color" content="#ff8fab" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
+        /* ===== RESET & ROOT ===== */
         :root {
             --blush: #ffe4ec;
             --blush-mid: #ffc2d1;
@@ -44,6 +53,7 @@
 
         html {
             scroll-behavior: smooth;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -54,6 +64,9 @@
             animation: gradientShift 20s ease infinite;
             overflow-x: hidden;
             line-height: 1.65;
+            min-height: 100vh;
+            width: 100%;
+            position: relative;
         }
 
         @keyframes gradientShift {
@@ -77,20 +90,20 @@
         .container {
             max-width: 760px;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 20px;
         }
 
         section {
             position: relative;
-            padding: 90px 0;
+            padding: 70px 0;
         }
 
         .section-title {
             font-family: 'Playfair Display', serif;
-            font-size: clamp(1.7rem, 5vw, 2.4rem);
+            font-size: clamp(1.6rem, 5vw, 2.4rem);
             text-align: center;
             color: var(--deep-rose);
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .section-subtitle {
@@ -98,10 +111,166 @@
             color: var(--text-soft);
             font-size: 1rem;
             max-width: 480px;
-            margin: 0 auto 50px;
+            margin: 0 auto 40px;
+            padding: 0 8px;
         }
 
-        /* Floating hearts */
+        /* ============================================================
+           FIREWORKS CANVAS (full screen overlay)
+           ============================================================ */
+        #fireworks-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            pointer-events: none;
+            /* allow clicks to pass through after fade */;
+        }
+
+        #fireworks-canvas.fade-out {
+            animation: fireworksFade 1s ease forwards;
+        }
+
+        @keyframes fireworksFade {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                pointer-events: none;
+            }
+        }
+
+        /* ============================================================
+           VERTICAL SCROLL PROGRESS BAR (right side)
+           ============================================================ */
+        #scroll-progress {
+            position: fixed;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 5px;
+            height: 200px;
+            max-height: 50vh;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            z-index: 9998;
+            box-shadow: 0 0 12px rgba(164, 19, 60, 0.1);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 143, 171, 0.2);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        #scroll-progress .track {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #scroll-progress .fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(180deg, var(--blush-deep), var(--deep-rose), var(--gold));
+            border-radius: 10px;
+            transition: height 0.08s linear;
+            box-shadow: 0 0 16px rgba(164, 19, 60, 0.3);
+        }
+
+        #scroll-progress .dot {
+            position: absolute;
+            right: -6px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--deep-rose);
+            box-shadow: 0 0 20px rgba(164, 19, 60, 0.5), 0 0 40px rgba(255, 143, 171, 0.3);
+            transition: bottom 0.08s linear;
+            border: 2px solid #fff;
+        }
+
+        #scroll-progress .dot::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: var(--blush-deep);
+            opacity: 0.3;
+            animation: dotPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes dotPulse {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.4);
+                opacity: 0.6;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #scroll-progress {
+                right: 8px;
+                width: 4px;
+                height: 140px;
+            }
+            #scroll-progress .dot {
+                right: -5px;
+                width: 13px;
+                height: 13px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            #scroll-progress {
+                height: 100px;
+                right: 5px;
+                width: 3px;
+            }
+            #scroll-progress .dot {
+                right: -4px;
+                width: 10px;
+                height: 10px;
+            }
+        }
+
+        /* ============================================================
+           RIPPLE EFFECT (for touch/click feedback)
+           ============================================================ */
+        .ripple {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+            transform: scale(0);
+            animation: rippleAnim 0.9s ease-out forwards;
+            background: radial-gradient(circle, rgba(255, 143, 171, 0.4) 0%, rgba(164, 19, 60, 0.1) 60%, transparent 80%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes rippleAnim {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* ============================================================
+           FLOATING HEARTS (background)
+           ============================================================ */
         #hearts-container {
             position: fixed;
             inset: 0;
@@ -154,7 +323,54 @@
             }
         }
 
-        /* Hero */
+        /* ============================================================
+           SPARKLE CONTAINER (on top of everything except fireworks)
+           ============================================================ */
+        #sparkle-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9996;
+            overflow: hidden;
+        }
+
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            font-size: 20px;
+            line-height: 1;
+            animation: sparkleFade 1.0s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+            will-change: transform, opacity;
+            user-select: none;
+            -webkit-user-select: none;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 0 6px rgba(255, 143, 171, 0.6));
+        }
+
+        .sparkle.touch-sparkle {
+            font-size: 28px !important;
+            animation-duration: 1.2s !important;
+            filter: drop-shadow(0 0 12px rgba(255, 143, 171, 0.8)) brightness(1.2);
+        }
+
+        @keyframes sparkleFade {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+            }
+            40% {
+                opacity: 1;
+                transform: translate(-50%, -80%) scale(1.4) rotate(180deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -160px) scale(0.6) rotate(360deg);
+            }
+        }
+
+        /* ============================================================
+           HERO
+           ============================================================ */
         .hero {
             min-height: 100vh;
             display: flex;
@@ -164,28 +380,28 @@
             text-align: center;
             position: relative;
             z-index: 2;
-            padding: 40px 24px;
+            padding: 40px 20px;
         }
 
         .hero-eyebrow {
             letter-spacing: 3px;
             text-transform: uppercase;
-            font-size: 0.75rem;
+            font-size: clamp(0.65rem, 2vw, 0.75rem);
             color: var(--text-soft);
             font-weight: 600;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         .hero-title {
             font-family: 'Playfair Display', serif;
             font-weight: 600;
-            font-size: clamp(2rem, 7vw, 3.2rem);
+            font-size: clamp(1.8rem, 7vw, 3.2rem);
             color: var(--charcoal);
         }
 
         .hero-name {
             font-family: 'Great Vibes', cursive;
-            font-size: clamp(4rem, 18vw, 8rem);
+            font-size: clamp(3.6rem, 18vw, 8rem);
             line-height: 1.15;
             background: linear-gradient(90deg, var(--deep-rose), var(--gold), var(--rose-gold-deep), var(--deep-rose));
             background-size: 300% auto;
@@ -194,7 +410,7 @@
             -webkit-text-fill-color: transparent;
             color: transparent;
             animation: shimmer 7s linear infinite;
-            margin: 6px 0 20px;
+            margin: 4px 0 18px;
         }
 
         @keyframes shimmer {
@@ -205,9 +421,10 @@
 
         .hero-sub {
             max-width: 460px;
-            font-size: 1.05rem;
+            font-size: clamp(0.95rem, 2.2vw, 1.05rem);
             color: var(--charcoal);
             opacity: 0.85;
+            padding: 0 8px;
         }
 
         .scroll-cue {
@@ -231,16 +448,75 @@
             }
         }
 
-        /* Memory lane */
+        /* ============================================================
+           DAYS COUNTER
+           ============================================================ */
+        #days-counter-section {
+            padding: 30px 0 10px;
+        }
+
+        .days-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 60px;
+            padding: 28px 24px;
+            box-shadow: var(--shadow-soft);
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            border: 1px solid rgba(255, 143, 171, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .days-card:hover {
+            transform: scale(1.01);
+        }
+
+        .days-number {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.8rem, 10vw, 4.6rem);
+            font-weight: 700;
+            color: var(--deep-rose);
+            line-height: 1.1;
+            letter-spacing: 2px;
+        }
+
+        .days-label {
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            color: var(--text-soft);
+            margin-top: 4px;
+        }
+
+        .days-emoji {
+            font-size: 1.6rem;
+            margin-top: 6px;
+            display: inline-block;
+            animation: floatEmoji 3s ease-in-out infinite;
+        }
+
+        @keyframes floatEmoji {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+
+        /* ============================================================
+           MEMORY LANE
+           ============================================================ */
         .memory-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 22px 16px;
+            gap: 18px 14px;
         }
 
         .polaroid {
             background: #fff;
-            padding: 12px 12px 30px;
+            padding: 10px 10px 24px;
             border-radius: 4px;
             box-shadow: var(--shadow-card);
             transform: rotate(var(--rot, 0deg));
@@ -263,8 +539,8 @@
             gap: 6px;
             color: var(--text-soft);
             text-align: center;
-            padding: 10px;
-            font-size: 0.75rem;
+            padding: 6px;
+            font-size: 0.7rem;
             overflow: hidden;
         }
 
@@ -275,23 +551,21 @@
             border-radius: 2px;
         }
 
-        .polaroid-photo span {
-            font-size: 1.6rem;
-        }
-
         .polaroid-caption {
             text-align: center;
-            margin-top: 10px;
-            font-size: 0.85rem;
+            margin-top: 8px;
+            font-size: 0.8rem;
             color: var(--charcoal);
             font-weight: 600;
         }
 
-        /* Pop a balloon */
+        /* ============================================================
+           POP A BALLOON
+           ============================================================ */
         .balloon-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 34px 12px;
+            gap: 30px 10px;
             max-width: 520px;
             margin: 0 auto;
         }
@@ -300,18 +574,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .balloon {
-            width: 54px;
-            height: 66px;
+            width: 50px;
+            height: 62px;
             border-radius: 50% 50% 50% 50% / 58% 58% 42% 42%;
             background: var(--balloon-color, var(--blush-deep));
             border: none;
             padding: 0;
             position: relative;
             cursor: pointer;
+            touch-action: manipulation;
             box-shadow: inset -8px -8px 14px rgba(0, 0, 0, 0.08), 0 6px 14px rgba(164, 19, 60, 0.15);
             animation: balloonBob 3s ease-in-out infinite;
             animation-delay: calc(var(--i, 0) * -0.5s);
@@ -364,16 +639,16 @@
 
         .balloon-string {
             width: 1.5px;
-            height: 20px;
+            height: 18px;
             background: var(--rose-gold-deep);
             opacity: 0.6;
         }
 
         .balloon-message {
-            font-size: 0.82rem;
+            font-size: clamp(0.7rem, 2vw, 0.82rem);
             color: var(--charcoal);
             text-align: center;
-            max-width: 130px;
+            max-width: 120px;
             opacity: 0;
             transform: translateY(-6px);
             transition: opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s;
@@ -384,18 +659,20 @@
             transform: translateY(0);
         }
 
-        /* Letter */
+        /* ============================================================
+           LETTER
+           ============================================================ */
         .letter-card {
             background: rgba(255, 255, 255, 0.75);
             border-radius: 20px;
-            padding: 40px 30px;
+            padding: 32px 22px;
             box-shadow: var(--shadow-soft);
             position: relative;
         }
 
         .letter-seal {
-            width: 46px;
-            height: 46px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--deep-rose), var(--blush-deep));
             display: flex;
@@ -403,24 +680,26 @@
             justify-content: center;
             color: #fff;
             font-family: 'Great Vibes', cursive;
-            font-size: 1.4rem;
-            margin: 0 auto 20px;
+            font-size: 1.3rem;
+            margin: 0 auto 18px;
             box-shadow: 0 4px 14px rgba(164, 19, 60, 0.3);
         }
 
         .letter-body p {
-            margin-bottom: 16px;
-            font-size: 1rem;
+            margin-bottom: 14px;
+            font-size: clamp(0.92rem, 2.2vw, 1rem);
         }
 
         .letter-signature {
             font-family: 'Great Vibes', cursive;
             font-size: 1.8rem;
             color: var(--deep-rose);
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
-        /* Cake / wish */
+        /* ============================================================
+           WISH / CAKE
+           ============================================================ */
         .wish-section {
             text-align: center;
         }
@@ -428,22 +707,22 @@
         .cake-wrap {
             display: flex;
             justify-content: center;
-            margin-bottom: 40px;
+            margin-bottom: 36px;
             position: relative;
         }
 
         .cake {
             position: relative;
-            width: 200px;
+            width: 180px;
         }
 
         .topper {
             position: absolute;
-            top: -78px;
+            top: -72px;
             left: 50%;
             transform: translateX(-50%);
             font-family: 'Great Vibes', cursive;
-            font-size: 2.2rem;
+            font-size: 2rem;
             color: var(--deep-rose);
             white-space: nowrap;
         }
@@ -452,23 +731,23 @@
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            gap: 20px;
+            gap: 18px;
             position: relative;
-            height: 50px;
+            height: 46px;
             margin-bottom: -4px;
             z-index: 2;
         }
 
         .candle {
-            width: 8px;
-            height: 32px;
+            width: 7px;
+            height: 30px;
             border-radius: 3px;
             background: linear-gradient(180deg, #fff, var(--blush-deep));
             position: relative;
         }
 
         .candle.tall {
-            height: 42px;
+            height: 40px;
         }
 
         .flame {
@@ -505,8 +784,8 @@
         }
 
         .tier-top {
-            width: 140px;
-            height: 50px;
+            width: 130px;
+            height: 46px;
             margin: 0 auto;
             border-radius: 50% 50% 10px 10px / 70% 70% 20% 20%;
             position: relative;
@@ -514,15 +793,15 @@
         }
 
         .tier-bottom {
-            width: 200px;
-            height: 60px;
+            width: 180px;
+            height: 56px;
             border-radius: 40% 40% 12px 12px / 25% 25% 12px 12px;
             margin-top: -4px;
         }
 
         .plate {
-            width: 220px;
-            height: 12px;
+            width: 200px;
+            height: 10px;
             background: var(--rose-gold);
             border-radius: 50%;
             margin: 0 auto;
@@ -533,15 +812,19 @@
             font-family: 'Quicksand', sans-serif;
             font-weight: 700;
             font-size: 1rem;
-            padding: 15px 34px;
+            padding: 14px 30px;
             border-radius: 999px;
             border: none;
             background: linear-gradient(135deg, var(--blush-deep), var(--deep-rose));
             color: #fff;
             cursor: pointer;
+            touch-action: manipulation;
             box-shadow: 0 8px 22px rgba(164, 19, 60, 0.3);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             min-height: 48px;
+            min-width: 200px;
+            position: relative;
+            overflow: hidden;
         }
 
         .wish-btn:hover {
@@ -555,13 +838,14 @@
         }
 
         .wish-message {
-            margin-top: 28px;
+            margin-top: 24px;
             font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--deep-rose);
             opacity: 0;
             transform: translateY(16px);
             transition: opacity 0.7s ease, transform 0.7s ease;
+            padding: 0 12px;
         }
 
         .wish-message.visible {
@@ -569,23 +853,26 @@
             transform: translateY(0);
         }
 
-        /* ---- YouTube Link Section (replaces audio) ---- */
+        /* ============================================================
+           YOUTUBE
+           ============================================================ */
         .youtube-section {
-            padding: 40px 0 90px;
+            padding: 30px 0 70px;
         }
 
         .youtube-card {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             border-radius: 60px;
-            padding: 24px 32px;
+            padding: 20px 24px;
             box-shadow: var(--shadow-soft);
-            max-width: 520px;
+            max-width: 480px;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 14px;
             border: 1px solid rgba(255, 143, 171, 0.2);
             text-decoration: none;
             color: var(--charcoal);
@@ -598,37 +885,40 @@
         }
 
         .youtube-card .youtube-icon {
-            font-size: 2.2rem;
+            font-size: 2rem;
             flex-shrink: 0;
         }
 
         .youtube-card .youtube-text {
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 1rem;
             text-align: center;
         }
 
         .youtube-card .youtube-text small {
             display: block;
             font-weight: 400;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             opacity: 0.7;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
-        /* ---- Scroll to Top Button ---- */
+        /* ============================================================
+           SCROLL TO TOP
+           ============================================================ */
         .scroll-top-btn {
             position: fixed;
-            bottom: 32px;
-            right: 32px;
-            width: 56px;
-            height: 56px;
+            bottom: 24px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             border: none;
             background: linear-gradient(135deg, var(--blush-deep), var(--deep-rose));
             color: #fff;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             cursor: pointer;
+            touch-action: manipulation;
             box-shadow: 0 6px 24px rgba(164, 19, 60, 0.35);
             z-index: 999;
             opacity: 0;
@@ -638,7 +928,6 @@
             align-items: center;
             justify-content: center;
             pointer-events: none;
-            touch-action: manipulation;
         }
 
         .scroll-top-btn.visible {
@@ -683,7 +972,6 @@
             }
         }
 
-        /* ---- Scroll indicator ring (pulsing glow) ---- */
         .scroll-top-btn::before {
             content: '';
             position: absolute;
@@ -713,16 +1001,16 @@
             }
         }
 
-        /* ---- Tooltip for scroll button ---- */
         .scroll-tooltip {
             position: fixed;
-            bottom: 96px;
-            right: 44px;
+            bottom: 82px;
+            right: 34px;
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(6px);
-            padding: 8px 18px;
+            -webkit-backdrop-filter: blur(6px);
+            padding: 6px 16px;
             border-radius: 40px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--deep-rose);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -732,7 +1020,6 @@
             pointer-events: none;
             z-index: 998;
             white-space: nowrap;
-            letter-spacing: 0.3px;
             border: 1px solid rgba(255, 143, 171, 0.2);
         }
 
@@ -752,7 +1039,9 @@
             border-top: 8px solid rgba(255, 255, 255, 0.92);
         }
 
-        /* Confetti */
+        /* ============================================================
+           CONFETTI
+           ============================================================ */
         #confetti-container {
             position: fixed;
             inset: 0;
@@ -781,74 +1070,282 @@
             }
         }
 
-        /* Footer */
+        /* ============================================================
+           FOOTER
+           ============================================================ */
         footer {
             background: linear-gradient(135deg, var(--deep-rose), var(--deep-rose-2));
             color: #fff8f3;
             text-align: center;
-            padding: 60px 24px;
+            padding: 50px 20px;
             position: relative;
             z-index: 2;
         }
 
         .footer-heart {
             font-size: 1.6rem;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
         .footer-text {
-            font-size: 1rem;
+            font-size: 0.95rem;
             opacity: 0.9;
             max-width: 420px;
-            margin: 0 auto 6px;
+            margin: 0 auto 4px;
         }
         .footer-sign {
             font-family: 'Great Vibes', cursive;
-            font-size: 1.6rem;
-            margin-top: 12px;
+            font-size: 1.5rem;
+            margin-top: 10px;
         }
 
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
         @media (min-width: 640px) {
             .memory-grid {
                 grid-template-columns: repeat(3, 1fr);
+                gap: 22px 18px;
+            }
+            .polaroid {
+                padding: 14px 14px 32px;
+            }
+            .polaroid-caption {
+                font-size: 0.85rem;
+            }
+            .balloon-grid {
+                gap: 38px 14px;
+            }
+            .balloon {
+                width: 56px;
+                height: 70px;
+            }
+            section {
+                padding: 90px 0;
+            }
+            .container {
+                padding: 0 28px;
+            }
+            .letter-card {
+                padding: 44px 36px;
+            }
+            .scroll-top-btn {
+                width: 56px;
+                height: 56px;
+                font-size: 1.6rem;
+                bottom: 32px;
+                right: 32px;
+            }
+            .scroll-tooltip {
+                bottom: 96px;
+                right: 44px;
+                font-size: 0.75rem;
+                padding: 8px 20px;
+            }
+            .days-card {
+                padding: 32px 32px;
+            }
+            .youtube-card {
+                padding: 24px 32px;
+            }
+            .youtube-card .youtube-text {
+                font-size: 1.1rem;
             }
         }
 
         @media (max-width: 480px) {
-            .youtube-card {
-                border-radius: 40px;
-                padding: 18px 20px;
-                flex-direction: column;
-                gap: 8px;
+            .container {
+                padding: 0 14px;
             }
-            .youtube-card .youtube-icon {
-                font-size: 1.8rem;
+            section {
+                padding: 50px 0;
+            }
+            .hero {
+                min-height: 90vh;
+                padding: 30px 14px;
+            }
+            .hero-name {
+                font-size: clamp(3.2rem, 16vw, 4.6rem);
+            }
+            .memory-grid {
+                gap: 12px 10px;
+            }
+            .polaroid {
+                padding: 6px 6px 18px;
+            }
+            .polaroid-caption {
+                font-size: 0.7rem;
+                margin-top: 6px;
+            }
+            .polaroid-photo {
+                border-width: 1.5px;
+                padding: 4px;
             }
             .balloon-grid {
-                gap: 24px 8px;
+                gap: 22px 6px;
+                max-width: 100%;
             }
             .balloon {
-                width: 44px;
-                height: 54px;
+                width: 40px;
+                height: 50px;
+            }
+            .balloon::after {
+                border-left-width: 4px;
+                border-right-width: 4px;
+                border-top-width: 6px;
+                bottom: -6px;
+            }
+            .balloon-string {
+                height: 14px;
             }
             .balloon-message {
+                font-size: 0.65rem;
+                max-width: 90px;
+            }
+            .letter-card {
+                padding: 22px 16px;
+                border-radius: 16px;
+            }
+            .letter-body p {
+                font-size: 0.88rem;
+                margin-bottom: 12px;
+            }
+            .letter-signature {
+                font-size: 1.5rem;
+            }
+            .letter-seal {
+                width: 38px;
+                height: 38px;
+                font-size: 1.1rem;
+            }
+            .cake {
+                width: 150px;
+            }
+            .topper {
+                font-size: 1.6rem;
+                top: -60px;
+            }
+            .tier-top {
+                width: 110px;
+                height: 40px;
+            }
+            .tier-bottom {
+                width: 150px;
+                height: 48px;
+            }
+            .plate {
+                width: 170px;
+                height: 8px;
+            }
+            .candles {
+                gap: 14px;
+                height: 38px;
+            }
+            .candle {
+                height: 26px;
+                width: 6px;
+            }
+            .candle.tall {
+                height: 34px;
+            }
+            .flame {
+                width: 8px;
+                height: 12px;
+                top: -14px;
+            }
+            .wish-btn {
+                font-size: 0.9rem;
+                padding: 12px 24px;
+                min-width: 160px;
+                min-height: 42px;
+            }
+            .wish-message {
+                font-size: 1rem;
+            }
+            .youtube-card {
+                border-radius: 40px;
+                padding: 14px 16px;
+                flex-direction: column;
+                gap: 6px;
+            }
+            .youtube-card .youtube-icon {
+                font-size: 1.6rem;
+            }
+            .youtube-card .youtube-text {
+                font-size: 0.9rem;
+            }
+            .youtube-card .youtube-text small {
                 font-size: 0.7rem;
-                max-width: 100px;
+            }
+            .days-card {
+                padding: 20px 16px;
+                border-radius: 40px;
+            }
+            .days-number {
+                font-size: clamp(2.2rem, 10vw, 3.2rem);
+            }
+            .days-label {
+                font-size: 0.8rem;
+            }
+            .days-emoji {
+                font-size: 1.2rem;
             }
             .scroll-top-btn {
-                width: 48px;
-                height: 48px;
-                font-size: 1.3rem;
-                bottom: 20px;
-                right: 20px;
+                width: 44px;
+                height: 44px;
+                font-size: 1.2rem;
+                bottom: 16px;
+                right: 14px;
             }
             .scroll-tooltip {
-                bottom: 78px;
-                right: 30px;
-                font-size: 0.65rem;
-                padding: 6px 14px;
+                bottom: 68px;
+                right: 22px;
+                font-size: 0.6rem;
+                padding: 4px 12px;
+            }
+            footer {
+                padding: 36px 16px;
+            }
+            .footer-text {
+                font-size: 0.85rem;
+            }
+            .footer-sign {
+                font-size: 1.3rem;
             }
         }
 
+        @media (max-width: 360px) {
+            .balloon {
+                width: 34px;
+                height: 42px;
+            }
+            .balloon-message {
+                font-size: 0.55rem;
+                max-width: 70px;
+            }
+            .balloon-grid {
+                gap: 16px 4px;
+            }
+            .memory-grid {
+                gap: 8px 6px;
+            }
+            .polaroid {
+                padding: 4px 4px 12px;
+            }
+            .polaroid-caption {
+                font-size: 0.6rem;
+            }
+            .hero-name {
+                font-size: clamp(2.6rem, 14vw, 3.6rem);
+            }
+            .section-title {
+                font-size: 1.3rem;
+            }
+            .letter-body p {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* ===== REDUCED MOTION ===== */
         @media (prefers-reduced-motion: reduce) {
             *,
             *::before,
@@ -861,21 +1358,51 @@
             .scroll-top-btn::before {
                 animation: none !important;
             }
+            .days-emoji {
+                animation: none !important;
+            }
+            .sparkle {
+                animation-duration: 0.6s !important;
+            }
+            #fireworks-canvas {
+                display: none !important;
+            }
+            .ripple {
+                display: none !important;
+            }
         }
     </style>
 </head>
 <body>
 
+    <!-- ===== FIREWORKS CANVAS ===== -->
+    <canvas id="fireworks-canvas"></canvas>
+
+    <!-- ===== BACKGROUND HEARTS ===== -->
     <div id="hearts-container" aria-hidden="true"></div>
+
+    <!-- ===== CONFETTI ===== -->
     <div id="confetti-container" aria-hidden="true"></div>
 
-    <!-- ===== SCROLL TO TOP BUTTON ===== -->
+    <!-- ===== SPARKLE CONTAINER ===== -->
+    <div id="sparkle-container" aria-hidden="true"></div>
+
+    <!-- ===== VERTICAL SCROLL PROGRESS BAR ===== -->
+    <div id="scroll-progress" aria-hidden="true">
+        <div class="track">
+            <div class="fill" id="progressFill"></div>
+            <div class="dot" id="progressDot"></div>
+        </div>
+    </div>
+
+    <!-- ===== SCROLL TO TOP ===== -->
     <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Scroll to top">
         <span class="heart-icon" aria-hidden="true">❤️</span>
     </button>
     <div class="scroll-tooltip" id="scrollTooltip">Back to top</div>
 
     <main>
+        <!-- ===== HERO ===== -->
         <section class="hero" id="hero">
             <p class="hero-eyebrow">To the one and only</p>
             <h1 class="hero-title">Happy Birthday</h1>
@@ -884,37 +1411,48 @@
             <a href="#memories" class="scroll-cue" aria-label="Scroll down">↓</a>
         </section>
 
+        <!-- ===== DAYS COUNTER ===== -->
+        <section id="days-counter-section">
+            <div class="container">
+                <div class="days-card">
+                    <div class="days-number" id="daysCounter">—</div>
+                    <div class="days-label">days since you were born ✨</div>
+                    <div class="days-emoji">🎂💕🌟</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== MEMORY LANE ===== -->
         <section id="memories">
             <div class="container">
                 <h2 class="section-title">Memory Lane</h2>
                 <p class="section-subtitle">A few of my favorite pictures of you</p>
-                <!-- Images are set to 1.jpg, 2.jpg, 3.jpg, 4.jpg – put those files in the same folder -->
                 <div class="memory-grid">
                     <div class="polaroid" style="--rot:-4deg">
-                        <div class="polaroid-photo"><img src="1.jpg" alt="Meru 1"></div>
+                        <div class="polaroid-photo"><img src="1.jpg" alt="Meru 1" loading="lazy" /></div>
                         <p class="polaroid-caption">That smile gets me every time</p>
                     </div>
                     <div class="polaroid" style="--rot:3deg">
-                        <div class="polaroid-photo"><img src="2.jpg" alt="Meru 2"></div>
+                        <div class="polaroid-photo"><img src="2.jpg" alt="Meru 2" loading="lazy" /></div>
                         <p class="polaroid-caption">You, being effortlessly you</p>
                     </div>
                     <div class="polaroid" style="--rot:-2deg">
-                        <div class="polaroid-photo"><img src="3.jpg" alt="Meru 3"></div>
+                        <div class="polaroid-photo"><img src="3.jpg" alt="Meru 3" loading="lazy" /></div>
                         <p class="polaroid-caption">This one lives in my head rent-free</p>
                     </div>
                     <div class="polaroid" style="--rot:5deg">
-                        <div class="polaroid-photo"><img src="4.jpg" alt="Meru 4"></div>
+                        <div class="polaroid-photo"><img src="4.jpg" alt="Meru 4" loading="lazy" /></div>
                         <p class="polaroid-caption">My favorite view</p>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- ===== POP A BALLOON ===== -->
         <section id="balloons">
             <div class="container">
                 <h2 class="section-title">Pop A Balloon</h2>
                 <p class="section-subtitle">Every balloon's got something to say. Go on, pop them all.</p>
-                <!-- EDIT ME: personalize the message inside each .balloon-message paragraph -->
                 <div class="balloon-grid">
                     <div class="balloon-wrap" style="--i:1">
                         <button class="balloon" style="--balloon-color: var(--blush-deep);" aria-label="Pop a balloon"></button>
@@ -950,51 +1488,35 @@
             </div>
         </section>
 
+        <!-- ===== LETTER ===== -->
         <section id="letter">
             <div class="container">
                 <h2 class="section-title">A Little Letter</h2>
                 <div class="letter-card">
                     <div class="letter-seal" aria-hidden="true">M</div>
                     <div class="letter-body">
-
-                        <!-- ===== YOUR FULL LETTER STARTS HERE ===== -->
                         <p>My Meru,</p>
-
                         <p>Happy Birthday, my love.</p>
-
                         <p>Today is all about you, and I don't think words will ever be enough to describe how grateful I am that you exist. Every year you grow into an even more beautiful person, not just because of how you look, but because of your heart, your kindness, your smile, and the way you make everyone around you feel special. You have this incredible way of making ordinary moments feel unforgettable, and I honestly don't know what I did to deserve someone as amazing as you in my life.</p>
-
                         <p>I hope seventeen becomes the most beautiful chapter of your life so far. I hope it brings you happiness that stays, dreams that come true, memories that make you smile years from now, and countless little moments that remind you just how loved you are. I hope every challenge makes you stronger, every success makes you proud, and every day gives you another reason to smile. Most of all, I hope you never stop believing in yourself, because I promise there is so much waiting for you.</p>
-
                         <p>Thank you for letting me be part of your life this past year. Thank you for every late night call that somehow made everything better, every random conversation that turned into hours, every inside joke that nobody else could ever understand, every laugh we shared, every memory we created together, and every moment that reminded me how lucky I am to know you. You have turned so many ordinary days into memories I will treasure forever.</p>
-
                         <p>Whenever life gets difficult, I hope you remember that you never have to face it alone. I will always be here to listen to your stories, celebrate your victories, comfort you on the hard days, and remind you how incredible you truly are. Your happiness means more to me than you probably realize, and seeing you smile is one of my favorite things in the world.</p>
-
                         <p>On this very special day, I want to make you a promise. I promise to always stand by your side, to support your dreams, to celebrate your successes, to lift you up whenever you need someone, and to care for you with all my heart. I promise that no matter how much time passes or where life takes us, a part of my heart will always belong to you. I will always be yours, yours, yours, yourssssssssss.</p>
-
                         <p>Thank you for being exactly who you are. Never change your beautiful heart, your laugh, your kindness, or the way you make the world brighter just by being in it. You are one of the most precious people in my life, and I hope this birthday reminds you of how deeply you are loved.</p>
-
                         <p>Happy 17th Birthday, my Meru.</p>
-                       
                         <p>May this year bring you endless happiness, beautiful surprises, unforgettable adventures, and everything your heart has been quietly wishing for. I cannot wait to make even more memories with you and watch you achieve every dream you have.</p>
-
                         <p>Here's to seventeen.</p>
-
                         <p>Here's to every memory we've made.</p>
-
                         <p>Here's to every memory we still have waiting for us.</p>
-
                         <p>And most importantly, here's to us.</p>
-
                         <p><strong>WO AI NI</strong> ❤️</p>
-                        <!-- ===== YOUR FULL LETTER ENDS HERE ===== -->
-
                     </div>
                     <p class="letter-signature">With everything, Rohan</p>
                 </div>
             </div>
         </section>
 
+        <!-- ===== WISH / CAKE ===== -->
         <section id="wish" class="wish-section">
             <div class="container">
                 <h2 class="section-title">Make A Wish</h2>
@@ -1013,11 +1535,11 @@
                     </div>
                 </div>
                 <button class="wish-btn" id="blow-btn">Blow out the candles 💨</button>
-                <p class="wish-message" id="wish-message">Make a wish, Meru 🌟<br>I hope it's just as beautiful as you are.</p>
+                <p class="wish-message" id="wish-message">Make a wish, Meru 🌟<br />I hope it's just as beautiful as you are.</p>
             </div>
         </section>
 
-        <!-- ===== YOUTUBE LINK ===== -->
+        <!-- ===== YOUTUBE ===== -->
         <section class="youtube-section" id="youtube">
             <div class="container">
                 <h2 class="section-title">Ig bare minimum</h2>
@@ -1033,6 +1555,7 @@
         </section>
     </main>
 
+    <!-- ===== FOOTER ===== -->
     <footer>
         <div class="footer-heart" aria-hidden="true">💕</div>
         <p class="footer-text">Made with way too many late-night edits and all my love, for the best person I know.</p>
@@ -1041,16 +1564,270 @@
 
     <script>
         (function() {
+            'use strict';
+
             var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-            // ---- Floating hearts ----
+            // ============================================================
+            // 1. OPTIMIZED FIREWORKS – runs only 2–3 seconds
+            // ============================================================
+            var canvas = document.getElementById('fireworks-canvas');
+            var ctx = canvas.getContext('2d');
+            var W, H;
+
+            function resizeCanvas() {
+                W = canvas.width = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            var particles = [];
+            var rockets = [];
+            var fireworksActive = true;
+            var frameCount = 0;
+            var MAX_FRAMES = 180; // ~3 seconds at 60fps (180 frames)
+            var colors = ['#ff8fab', '#ffc2d1', '#e5b3ac', '#d4af37', '#ff6b8a', '#c98a80', '#ffb703', '#fb5607', '#ff006e',
+                '#8338ec', '#3a86ff'
+            ];
+
+            function random(min, max) { return Math.random() * (max - min) + min; }
+
+            function randomColor() { return colors[Math.floor(Math.random() * colors.length)]; }
+
+            // ---- Rocket (simplified for speed) ----
+            function Rocket() {
+                this.x = random(W * 0.1, W * 0.9);
+                this.y = H + random(20, 50);
+                this.targetY = random(H * 0.05, H * 0.4);
+                this.speed = random(10, 18);
+                this.color = randomColor();
+                this.alive = true;
+                this.size = 2.5;
+                this.trail = [];
+            }
+
+            Rocket.prototype.update = function() {
+                this.trail.push({ x: this.x, y: this.y, life: 1 });
+                if (this.trail.length > 8) this.trail.shift();
+                this.y -= this.speed;
+                this.speed *= 0.99;
+                this.x += random(-0.6, 0.6);
+                if (this.y <= this.targetY || this.speed < 0.8) {
+                    this.alive = false;
+                    createExplosion(this.x, this.y, this.color);
+                }
+                for (var i = 0; i < this.trail.length; i++) {
+                    this.trail[i].life -= 0.04;
+                }
+                this.trail = this.trail.filter(function(t) { return t.life > 0; });
+            };
+
+            Rocket.prototype.draw = function() {
+                for (var i = 0; i < this.trail.length; i++) {
+                    var t = this.trail[i];
+                    ctx.globalAlpha = t.life * 0.5;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, this.size * (t.life * 0.8 + 0.2), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#fff';
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 1.4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            };
+
+            // ---- Explosion (fewer particles for speed) ----
+            function createExplosion(x, y, color) {
+                var count = Math.floor(random(40, 80)); // reduced from 60-120
+                for (var i = 0; i < count; i++) {
+                    var angle = random(0, Math.PI * 2);
+                    var speed = random(2, 9);
+                    particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed - random(0, 2),
+                        life: 1,
+                        decay: random(0.012, 0.03),
+                        color: color,
+                        size: random(2, 4.5),
+                        gravity: 0.06
+                    });
+                }
+                // Small secondary burst (optional)
+                if (Math.random() > 0.6) {
+                    var count2 = Math.floor(random(15, 35));
+                    var c2 = randomColor();
+                    for (var j = 0; j < count2; j++) {
+                        var a2 = random(0, Math.PI * 2);
+                        var s2 = random(1, 5);
+                        particles.push({
+                            x: x + random(-15, 15),
+                            y: y + random(-15, 15),
+                            vx: Math.cos(a2) * s2,
+                            vy: Math.sin(a2) * s2 - random(0, 1),
+                            life: 1,
+                            decay: random(0.015, 0.035),
+                            color: c2,
+                            size: random(1.5, 3.5),
+                            gravity: 0.05
+                        });
+                    }
+                }
+            }
+
+            // ---- Update & draw particles ----
+            function updateParticles() {
+                for (var i = particles.length - 1; i >= 0; i--) {
+                    var p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += p.gravity;
+                    p.vx *= 0.99;
+                    p.vy *= 0.99;
+                    p.life -= p.decay;
+                    if (p.life <= 0) {
+                        particles.splice(i, 1);
+                    }
+                }
+            }
+
+            function drawParticles() {
+                for (var i = 0; i < particles.length; i++) {
+                    var p = particles[i];
+                    ctx.globalAlpha = p.life * 0.9;
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * p.life + 0.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+                ctx.globalAlpha = 1;
+            }
+
+            // ---- Launch rockets ----
+            function launchRocket() {
+                if (!fireworksActive) return;
+                var r = new Rocket();
+                rockets.push(r);
+            }
+
+            // ---- Main loop ----
+            function animateFireworks() {
+                if (!fireworksActive || frameCount > MAX_FRAMES) {
+                    // Fade out and hide canvas
+                    if (!canvas.classList.contains('fade-out')) {
+                        canvas.classList.add('fade-out');
+                        setTimeout(function() {
+                            canvas.style.display = 'none';
+                        }, 1000);
+                    }
+                    return;
+                }
+
+                // Clear with semi-transparent for trails
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.fillStyle = 'rgba(0,0,0,0.25)';
+                ctx.fillRect(0, 0, W, H);
+                ctx.globalCompositeOperation = 'lighter';
+
+                // Launch rockets periodically (more frequent early on)
+                if (frameCount < 60) {
+                    if (frameCount % 8 === 0 && rockets.length < 6) launchRocket();
+                } else {
+                    if (frameCount % 14 === 0 && rockets.length < 4) launchRocket();
+                }
+                // Extra random bursts
+                if (Math.random() > 0.92 && rockets.length < 5) launchRocket();
+
+                // Update rockets
+                for (var i = rockets.length - 1; i >= 0; i--) {
+                    rockets[i].update();
+                    rockets[i].draw();
+                    if (!rockets[i].alive) {
+                        rockets.splice(i, 1);
+                    }
+                }
+
+                // Update & draw particles
+                updateParticles();
+                drawParticles();
+
+                frameCount++;
+
+                // If no rockets and few particles left, stop early
+                if (frameCount > 120 && rockets.length === 0 && particles.length < 10) {
+                    fireworksActive = false;
+                    canvas.classList.add('fade-out');
+                    setTimeout(function() {
+                        canvas.style.display = 'none';
+                    }, 1000);
+                    return;
+                }
+
+                requestAnimationFrame(animateFireworks);
+            }
+
+            // Start fireworks
+            if (!prefersReducedMotion) {
+                // Initial salvo
+                for (var i = 0; i < 5; i++) {
+                    setTimeout(function() {
+                        var r = new Rocket();
+                        r.x = random(W * 0.1, W * 0.9);
+                        r.targetY = random(H * 0.05, H * 0.4);
+                        rockets.push(r);
+                    }, i * 120);
+                }
+                animateFireworks();
+            } else {
+                canvas.style.display = 'none';
+            }
+
+            // ============================================================
+            // 2. VERTICAL SCROLL PROGRESS BAR
+            // ============================================================
+            var progressFill = document.getElementById('progressFill');
+            var progressDot = document.getElementById('progressDot');
+            var progressBar = document.getElementById('scroll-progress');
+
+            function updateProgress() {
+                var scrollY = window.scrollY || window.pageYOffset || 0;
+                var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                var percent = maxScroll > 0 ? (scrollY / maxScroll) * 100 : 0;
+                percent = Math.min(100, Math.max(0, percent));
+                progressFill.style.height = percent + '%';
+                progressDot.style.bottom = percent + '%';
+                if (percent < 1 || percent > 99) {
+                    progressBar.style.opacity = '0.3';
+                } else {
+                    progressBar.style.opacity = '1';
+                }
+            }
+
+            window.addEventListener('scroll', updateProgress, { passive: true });
+            window.addEventListener('resize', updateProgress, { passive: true });
+            updateProgress();
+
+            // ============================================================
+            // 3. FLOATING HEARTS (reduced count for performance)
+            // ============================================================
             function createHearts(count) {
                 var container = document.getElementById('hearts-container');
+                if (!container) return;
                 var colors = ['#ff8fab', '#e5b3ac', '#ffc2d1'];
                 for (var i = 0; i < count; i++) {
                     var heart = document.createElement('div');
                     heart.className = 'heart';
-                    var size = 10 + Math.random() * 14;
+                    var size = 10 + Math.random() * 12;
                     heart.style.left = Math.random() * 100 + 'vw';
                     heart.style.width = size + 'px';
                     heart.style.height = size + 'px';
@@ -1060,63 +1837,234 @@
                     container.appendChild(heart);
                 }
             }
-            if (!prefersReducedMotion) createHearts(18);
+            if (!prefersReducedMotion) createHearts(14);
 
-            // ---- Confetti ----
+            // ============================================================
+            // 4. SPARKLE + RIPPLE (optimized with throttling)
+            // ============================================================
+            var sparkleContainer = document.getElementById('sparkle-container');
+            var sparkleEmojis = ['✨', '⭐', '❤️', '🌟', '💕', '🌸', '🎀', '💖'];
+
+            function spawnSparkle(clientX, clientY, isTouch) {
+                if (prefersReducedMotion) return;
+                var el = document.createElement('div');
+                el.className = 'sparkle';
+                if (isTouch) el.classList.add('touch-sparkle');
+                var size = isTouch ? 22 + Math.random() * 20 : 14 + Math.random() * 14;
+                el.style.fontSize = size + 'px';
+                el.style.left = clientX + 'px';
+                el.style.top = clientY + 'px';
+                el.textContent = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+                var hue = Math.random() * 40 - 20;
+                el.style.filter = 'hue-rotate(' + hue + 'deg) brightness(1.1)';
+                sparkleContainer.appendChild(el);
+                setTimeout(function() {
+                    if (el.parentNode) el.parentNode.removeChild(el);
+                }, 1200);
+            }
+
+            function spawnRipple(clientX, clientY) {
+                if (prefersReducedMotion) return;
+                var ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                var size = 30 + Math.random() * 40;
+                ripple.style.width = size + 'px';
+                ripple.style.height = size + 'px';
+                ripple.style.left = (clientX - size / 2) + 'px';
+                ripple.style.top = (clientY - size / 2) + 'px';
+                document.body.appendChild(ripple);
+                setTimeout(function() {
+                    if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+                }, 1000);
+            }
+
+            // Throttle functions for performance
+            function throttle(fn, limit) {
+                var inThrottle = false;
+                return function() {
+                    if (!inThrottle) {
+                        fn.apply(this, arguments);
+                        inThrottle = true;
+                        setTimeout(function() { inThrottle = false; }, limit);
+                    }
+                };
+            }
+
+            var throttledSpawn = throttle(spawnSparkle, 50);
+            var throttledRipple = throttle(spawnRipple, 80);
+
+            // ---- Mouse events ----
+            var isMouseDown = false;
+
+            function handleMouseEvent(clientX, clientY) {
+                spawnRipple(clientX, clientY);
+                spawnSparkle(clientX, clientY, false);
+                // extra sparkles
+                for (var i = 0; i < 2; i++) {
+                    setTimeout(function() {
+                        spawnSparkle(
+                            clientX + (Math.random() - 0.5) * 30,
+                            clientY + (Math.random() - 0.5) * 30,
+                            false
+                        );
+                    }, i * 40);
+                }
+            }
+
+            document.addEventListener('mousedown', function(e) {
+                isMouseDown = true;
+                handleMouseEvent(e.clientX, e.clientY);
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (isMouseDown) {
+                    throttledSpawn(e.clientX, e.clientY, false);
+                    if (Math.random() > 0.7) throttledRipple(e.clientX, e.clientY);
+                }
+            });
+
+            document.addEventListener('mouseup', function() { isMouseDown = false; });
+
+            // ---- Touch events (optimized) ----
+            var isTouching = false;
+
+            function handleTouchEvent(clientX, clientY) {
+                spawnRipple(clientX, clientY);
+                spawnSparkle(clientX, clientY, true);
+                for (var i = 0; i < 3; i++) {
+                    setTimeout(function() {
+                        spawnSparkle(
+                            clientX + (Math.random() - 0.5) * 50,
+                            clientY + (Math.random() - 0.5) * 50,
+                            true
+                        );
+                    }, i * 30);
+                }
+            }
+
+            document.addEventListener('touchstart', function(e) {
+                var touch = e.touches[0];
+                if (touch) {
+                    isTouching = true;
+                    handleTouchEvent(touch.clientX, touch.clientY);
+                }
+            }, { passive: true });
+
+            var throttledTouch = throttle(function(clientX, clientY) {
+                spawnSparkle(clientX, clientY, true);
+                if (Math.random() > 0.6) spawnRipple(clientX, clientY);
+            }, 40);
+
+            document.addEventListener('touchmove', function(e) {
+                var touch = e.touches[0];
+                if (touch && isTouching) {
+                    throttledTouch(touch.clientX, touch.clientY);
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchend', function() { isTouching = false; }, { passive: true });
+            document.addEventListener('touchcancel', function() { isTouching = false; }, { passive: true });
+
+            // ============================================================
+            // 5. DAYS COUNTER
+            // ============================================================
+            var BIRTH_DATE = new Date(2009, 6, 17);
+
+            function updateDaysCounter() {
+                var now = new Date();
+                var diffMs = now.getTime() - BIRTH_DATE.getTime();
+                var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                var el = document.getElementById('daysCounter');
+                if (el) el.textContent = diffDays.toLocaleString();
+            }
+            updateDaysCounter();
+            setInterval(updateDaysCounter, 600000);
+
+            // ============================================================
+            // 6. CONFETTI (lightweight)
+            // ============================================================
             function launchConfetti(count) {
+                if (prefersReducedMotion) return;
                 var container = document.getElementById('confetti-container');
-                var colors = ['#ff8fab', '#e5b3ac', '#ffc2d1', '#d4af37', '#ffffff'];
+                if (!container) return;
+                var colors = ['#ff8fab', '#e5b3ac', '#ffc2d1', '#d4af37', '#ffffff', '#ff6b8a', '#c98a80'];
                 for (var i = 0; i < count; i++) {
                     var piece = document.createElement('div');
                     piece.className = 'confetti-piece';
                     piece.style.left = Math.random() * 100 + '%';
                     piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.width = (4 + Math.random() * 6) + 'px';
+                    piece.style.height = (4 + Math.random() * 6) + 'px';
                     piece.style.animationDuration = (2 + Math.random() * 2) + 's';
                     piece.style.animationDelay = (Math.random() * 0.4) + 's';
                     if (Math.random() > 0.5) piece.style.borderRadius = '50%';
                     container.appendChild(piece);
-                    setTimeout(function(p) { return function() { p.remove(); }; }(piece), 4500);
+                    setTimeout(function(p) {
+                        return function() { if (p.parentNode) p.parentNode.removeChild(p); };
+                    }(piece), 4500);
                 }
             }
 
-            // ---- Balloons ----
+            // ============================================================
+            // 7. BALLOONS
+            // ============================================================
             var balloons = document.querySelectorAll('.balloon');
             balloons.forEach(function(balloon) {
-                balloon.addEventListener('click', function() {
+                balloon.addEventListener('click', function(e) {
                     if (balloon.classList.contains('popped')) return;
                     balloon.classList.add('popped');
                     var msg = balloon.parentElement.querySelector('.balloon-message');
                     if (msg) msg.classList.add('revealed');
-                    if (!prefersReducedMotion) launchConfetti(16);
+                    launchConfetti(14);
+                    var rect = balloon.getBoundingClientRect();
+                    var cx = rect.left + rect.width / 2;
+                    var cy = rect.top + rect.height / 2;
+                    for (var i = 0; i < 6; i++) {
+                        setTimeout(function() {
+                            spawnSparkle(cx + (Math.random() - 0.5) * 50, cy + (Math.random() - 0.5) *
+                            50, true);
+                            spawnRipple(cx + (Math.random() - 0.5) * 30, cy + (Math.random() - 0.5) *
+                            30);
+                        }, i * 40);
+                    }
                 });
             });
 
-            // ---- Cake / Wish ----
-            document.getElementById('blow-btn').addEventListener('click', function() {
-                document.getElementById('candles').classList.add('blown-out');
-                document.getElementById('wish-message').classList.add('visible');
-                if (!prefersReducedMotion) launchConfetti(70);
-                this.disabled = true;
-                this.textContent = 'Wish made 💫';
-            });
+            // ============================================================
+            // 8. CAKE WISH
+            // ============================================================
+            var blowBtn = document.getElementById('blow-btn');
+            if (blowBtn) {
+                blowBtn.addEventListener('click', function() {
+                    document.getElementById('candles').classList.add('blown-out');
+                    document.getElementById('wish-message').classList.add('visible');
+                    launchConfetti(60);
+                    this.disabled = true;
+                    this.textContent = 'Wish made 💫';
+                    for (var i = 0; i < 20; i++) {
+                        setTimeout(function() {
+                            var x = window.innerWidth * (0.1 + Math.random() * 0.8);
+                            var y = window.innerHeight * (0.1 + Math.random() * 0.8);
+                            spawnSparkle(x, y, true);
+                            spawnRipple(x, y);
+                        }, i * 50);
+                    }
+                });
+            }
 
             // ============================================================
-            // ---- SCROLL TO TOP BUTTON ----
+            // 9. SCROLL TO TOP
             // ============================================================
             var scrollBtn = document.getElementById('scrollTopBtn');
             var tooltip = document.getElementById('scrollTooltip');
             var scrollThreshold = 300;
             var tooltipTimeout = null;
 
-            // Show/hide button + tooltip based on scroll
             function handleScroll() {
                 var scrollY = window.scrollY || window.pageYOffset || 0;
                 var isVisible = scrollY > scrollThreshold;
-
                 scrollBtn.classList.toggle('visible', isVisible);
                 tooltip.classList.toggle('visible', isVisible);
-
-                // Hide tooltip after 4 seconds once visible
                 if (isVisible) {
                     if (tooltipTimeout) clearTimeout(tooltipTimeout);
                     tooltipTimeout = setTimeout(function() {
@@ -1130,7 +2078,6 @@
                 }
             }
 
-            // Debounced scroll listener for performance
             var scrollTimeout = null;
             window.addEventListener('scroll', function() {
                 if (scrollTimeout) return;
@@ -1140,58 +2087,59 @@
                 }, 60);
             }, { passive: true });
 
-            // Also check on load
             handleScroll();
 
-            // Click to scroll to top smoothly
-            scrollBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
+            if (scrollBtn) {
+                scrollBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    scrollBtn.style.transform = 'scale(0.85)';
+                    setTimeout(function() { scrollBtn.style.transform = ''; }, 200);
+                    var rect = scrollBtn.getBoundingClientRect();
+                    spawnSparkle(rect.left + rect.width / 2, rect.top + rect.height / 2, false);
                 });
-                // Small haptic feedback – pulse the button
-                scrollBtn.style.transform = 'scale(0.85)';
-                setTimeout(function() {
-                    scrollBtn.style.transform = '';
-                }, 200);
-            });
 
-            // --- Show tooltip on hover (if visible) ---
-            scrollBtn.addEventListener('mouseenter', function() {
-                if (scrollBtn.classList.contains('visible')) {
-                    tooltip.classList.add('visible');
-                    if (tooltipTimeout) {
-                        clearTimeout(tooltipTimeout);
-                        tooltipTimeout = null;
+                scrollBtn.addEventListener('mouseenter', function() {
+                    if (scrollBtn.classList.contains('visible')) {
+                        tooltip.classList.add('visible');
+                        if (tooltipTimeout) clearTimeout(tooltipTimeout);
                     }
-                }
-            });
+                });
 
-            scrollBtn.addEventListener('mouseleave', function() {
-                // Hide after a short delay, but keep visible if still hovering?
-                if (tooltipTimeout) clearTimeout(tooltipTimeout);
-                tooltipTimeout = setTimeout(function() {
-                    if (!scrollBtn.matches(':hover')) {
-                        tooltip.classList.remove('visible');
-                    }
-                }, 600);
-            });
-
-            // Touch support: show tooltip on touch, hide after delay
-            scrollBtn.addEventListener('touchstart', function() {
-                if (scrollBtn.classList.contains('visible')) {
-                    tooltip.classList.add('visible');
-                    if (tooltipTimeout) {
-                        clearTimeout(tooltipTimeout);
-                        tooltipTimeout = null;
-                    }
-                    // Hide after 2.5s on touch
+                scrollBtn.addEventListener('mouseleave', function() {
+                    if (tooltipTimeout) clearTimeout(tooltipTimeout);
                     tooltipTimeout = setTimeout(function() {
-                        tooltip.classList.remove('visible');
-                    }, 2500);
-                }
-            }, { passive: true });
+                        if (!scrollBtn.matches(':hover')) tooltip.classList.remove('visible');
+                    }, 600);
+                });
+
+                scrollBtn.addEventListener('touchstart', function() {
+                    if (scrollBtn.classList.contains('visible')) {
+                        tooltip.classList.add('visible');
+                        if (tooltipTimeout) clearTimeout(tooltipTimeout);
+                        tooltipTimeout = setTimeout(function() {
+                            tooltip.classList.remove('visible');
+                        }, 2500);
+                    }
+                }, { passive: true });
+            }
+
+            // ============================================================
+            // 10. WELCOME SPARKLES (light)
+            // ============================================================
+            if (!prefersReducedMotion) {
+                setTimeout(function() {
+                    for (var i = 0; i < 6; i++) {
+                        setTimeout(function() {
+                            spawnSparkle(
+                                window.innerWidth * (0.1 + Math.random() * 0.8),
+                                window.innerHeight * (0.2 + Math.random() * 0.6),
+                                false
+                            );
+                        }, i * 100);
+                    }
+                }, 1500);
+            }
 
         })();
     </script>
