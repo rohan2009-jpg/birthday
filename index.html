@@ -616,6 +616,142 @@
             margin-top: 4px;
         }
 
+        /* ---- Scroll to Top Button ---- */
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--blush-deep), var(--deep-rose));
+            color: #fff;
+            font-size: 1.6rem;
+            cursor: pointer;
+            box-shadow: 0 6px 24px rgba(164, 19, 60, 0.35);
+            z-index: 999;
+            opacity: 0;
+            transform: translateY(20px) scale(0.8);
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            touch-action: manipulation;
+        }
+
+        .scroll-top-btn.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .scroll-top-btn:hover {
+            transform: translateY(-4px) scale(1.06);
+            box-shadow: 0 10px 32px rgba(164, 19, 60, 0.45);
+        }
+
+        .scroll-top-btn:active {
+            transform: scale(0.92);
+        }
+
+        .scroll-top-btn .heart-icon {
+            display: inline-block;
+            transition: transform 0.3s ease;
+            line-height: 1;
+        }
+
+        .scroll-top-btn:hover .heart-icon {
+            transform: scale(1.2);
+            animation: heartPulse 0.6s ease-in-out;
+        }
+
+        @keyframes heartPulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            25% {
+                transform: scale(1.3);
+            }
+            50% {
+                transform: scale(1);
+            }
+            75% {
+                transform: scale(1.2);
+            }
+        }
+
+        /* ---- Scroll indicator ring (pulsing glow) ---- */
+        .scroll-top-btn::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--blush-deep), var(--deep-rose));
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.4s ease;
+            filter: blur(10px);
+        }
+
+        .scroll-top-btn.visible::before {
+            opacity: 0.4;
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+        }
+
+        /* ---- Tooltip for scroll button ---- */
+        .scroll-tooltip {
+            position: fixed;
+            bottom: 96px;
+            right: 44px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(6px);
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--deep-rose);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            z-index: 998;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255, 143, 171, 0.2);
+        }
+
+        .scroll-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .scroll-tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid rgba(255, 255, 255, 0.92);
+        }
+
         /* Confetti */
         #confetti-container {
             position: fixed;
@@ -698,6 +834,19 @@
                 font-size: 0.7rem;
                 max-width: 100px;
             }
+            .scroll-top-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 1.3rem;
+                bottom: 20px;
+                right: 20px;
+            }
+            .scroll-tooltip {
+                bottom: 78px;
+                right: 30px;
+                font-size: 0.65rem;
+                padding: 6px 14px;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -709,6 +858,9 @@
                 transition-duration: 0.01ms !important;
                 scroll-behavior: auto !important;
             }
+            .scroll-top-btn::before {
+                animation: none !important;
+            }
         }
     </style>
 </head>
@@ -716,6 +868,12 @@
 
     <div id="hearts-container" aria-hidden="true"></div>
     <div id="confetti-container" aria-hidden="true"></div>
+
+    <!-- ===== SCROLL TO TOP BUTTON ===== -->
+    <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Scroll to top">
+        <span class="heart-icon" aria-hidden="true">❤️</span>
+    </button>
+    <div class="scroll-tooltip" id="scrollTooltip">Back to top</div>
 
     <main>
         <section class="hero" id="hero">
@@ -798,11 +956,39 @@
                 <div class="letter-card">
                     <div class="letter-seal" aria-hidden="true">M</div>
                     <div class="letter-body">
+
+                        <!-- ===== YOUR FULL LETTER STARTS HERE ===== -->
                         <p>My Meru,</p>
-                        <p>Another year, and somehow you keep becoming more <em>you</em> — more brilliant, more kind, more impossible not to love.</p>
-                        <p>I hope seventeen brings you everything you've been quietly hoping for, and a few things you didn't even know to wish for yet. I hope it's full of loud laughter, comfortable silences, and days that feel like they were made just for you.</p>
-                        <p>Thank you for letting me be part of your story this year. For every late-night call, every inside joke nobody else gets, every random text that somehow always arrives at the right moment. You make ordinary days feel like something worth keeping.</p>
-                        <p>Happy birthday, Meru. Here's to seventeen — and to us.</p>
+
+                        <p>Happy Birthday, my love.</p>
+
+                        <p>Today is all about you, and I don't think words will ever be enough to describe how grateful I am that you exist. Every year you grow into an even more beautiful person, not just because of how you look, but because of your heart, your kindness, your smile, and the way you make everyone around you feel special. You have this incredible way of making ordinary moments feel unforgettable, and I honestly don't know what I did to deserve someone as amazing as you in my life.</p>
+
+                        <p>I hope seventeen becomes the most beautiful chapter of your life so far. I hope it brings you happiness that stays, dreams that come true, memories that make you smile years from now, and countless little moments that remind you just how loved you are. I hope every challenge makes you stronger, every success makes you proud, and every day gives you another reason to smile. Most of all, I hope you never stop believing in yourself, because I promise there is so much waiting for you.</p>
+
+                        <p>Thank you for letting me be part of your life this past year. Thank you for every late night call that somehow made everything better, every random conversation that turned into hours, every inside joke that nobody else could ever understand, every laugh we shared, every memory we created together, and every moment that reminded me how lucky I am to know you. You have turned so many ordinary days into memories I will treasure forever.</p>
+
+                        <p>Whenever life gets difficult, I hope you remember that you never have to face it alone. I will always be here to listen to your stories, celebrate your victories, comfort you on the hard days, and remind you how incredible you truly are. Your happiness means more to me than you probably realize, and seeing you smile is one of my favorite things in the world.</p>
+
+                        <p>On this very special day, I want to make you a promise. I promise to always stand by your side, to support your dreams, to celebrate your successes, to lift you up whenever you need someone, and to care for you with all my heart. I promise that no matter how much time passes or where life takes us, a part of my heart will always belong to you. I will always be yours, yours, yours, yourssssssssss.</p>
+
+                        <p>Thank you for being exactly who you are. Never change your beautiful heart, your laugh, your kindness, or the way you make the world brighter just by being in it. You are one of the most precious people in my life, and I hope this birthday reminds you of how deeply you are loved.</p>
+
+                        <p>Happy 17th Birthday, my Meru.</p>
+                       
+                        <p>May this year bring you endless happiness, beautiful surprises, unforgettable adventures, and everything your heart has been quietly wishing for. I cannot wait to make even more memories with you and watch you achieve every dream you have.</p>
+
+                        <p>Here's to seventeen.</p>
+
+                        <p>Here's to every memory we've made.</p>
+
+                        <p>Here's to every memory we still have waiting for us.</p>
+
+                        <p>And most importantly, here's to us.</p>
+
+                        <p><strong>WO AI NI</strong> ❤️</p>
+                        <!-- ===== YOUR FULL LETTER ENDS HERE ===== -->
+
                     </div>
                     <p class="letter-signature">With everything, Rohan</p>
                 </div>
@@ -831,7 +1017,7 @@
             </div>
         </section>
 
-        <!-- ===== YOUTUBE LINK (replaces audio player) ===== -->
+        <!-- ===== YOUTUBE LINK ===== -->
         <section class="youtube-section" id="youtube">
             <div class="container">
                 <h2 class="section-title">Ig bare minimum</h2>
@@ -913,6 +1099,99 @@
                 this.disabled = true;
                 this.textContent = 'Wish made 💫';
             });
+
+            // ============================================================
+            // ---- SCROLL TO TOP BUTTON ----
+            // ============================================================
+            var scrollBtn = document.getElementById('scrollTopBtn');
+            var tooltip = document.getElementById('scrollTooltip');
+            var scrollThreshold = 300;
+            var tooltipTimeout = null;
+
+            // Show/hide button + tooltip based on scroll
+            function handleScroll() {
+                var scrollY = window.scrollY || window.pageYOffset || 0;
+                var isVisible = scrollY > scrollThreshold;
+
+                scrollBtn.classList.toggle('visible', isVisible);
+                tooltip.classList.toggle('visible', isVisible);
+
+                // Hide tooltip after 4 seconds once visible
+                if (isVisible) {
+                    if (tooltipTimeout) clearTimeout(tooltipTimeout);
+                    tooltipTimeout = setTimeout(function() {
+                        tooltip.classList.remove('visible');
+                    }, 4000);
+                } else {
+                    if (tooltipTimeout) {
+                        clearTimeout(tooltipTimeout);
+                        tooltipTimeout = null;
+                    }
+                }
+            }
+
+            // Debounced scroll listener for performance
+            var scrollTimeout = null;
+            window.addEventListener('scroll', function() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    handleScroll();
+                    scrollTimeout = null;
+                }, 60);
+            }, { passive: true });
+
+            // Also check on load
+            handleScroll();
+
+            // Click to scroll to top smoothly
+            scrollBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+                // Small haptic feedback – pulse the button
+                scrollBtn.style.transform = 'scale(0.85)';
+                setTimeout(function() {
+                    scrollBtn.style.transform = '';
+                }, 200);
+            });
+
+            // --- Show tooltip on hover (if visible) ---
+            scrollBtn.addEventListener('mouseenter', function() {
+                if (scrollBtn.classList.contains('visible')) {
+                    tooltip.classList.add('visible');
+                    if (tooltipTimeout) {
+                        clearTimeout(tooltipTimeout);
+                        tooltipTimeout = null;
+                    }
+                }
+            });
+
+            scrollBtn.addEventListener('mouseleave', function() {
+                // Hide after a short delay, but keep visible if still hovering?
+                if (tooltipTimeout) clearTimeout(tooltipTimeout);
+                tooltipTimeout = setTimeout(function() {
+                    if (!scrollBtn.matches(':hover')) {
+                        tooltip.classList.remove('visible');
+                    }
+                }, 600);
+            });
+
+            // Touch support: show tooltip on touch, hide after delay
+            scrollBtn.addEventListener('touchstart', function() {
+                if (scrollBtn.classList.contains('visible')) {
+                    tooltip.classList.add('visible');
+                    if (tooltipTimeout) {
+                        clearTimeout(tooltipTimeout);
+                        tooltipTimeout = null;
+                    }
+                    // Hide after 2.5s on touch
+                    tooltipTimeout = setTimeout(function() {
+                        tooltip.classList.remove('visible');
+                    }, 2500);
+                }
+            }, { passive: true });
 
         })();
     </script>
