@@ -3,9 +3,9 @@
   Happy 17th Birthday website for Meru 💕
 
   Quick customization guide:
-  1. Search for [Your Name] (2 spots: the letter + the footer) and replace with your name
+  1. Name is now set to Rohan (letter + footer)
   2. "Memory Lane" — images are already set to 1.jpg, 2.jpg, 3.jpg, 4.jpg – just put them in the same folder
-  3. Song — put song.mp3 in the same folder (already set in the audio player)
+  3. YouTube link is already set to https://youtu.be/Te-xej8X_YI
   4. "Pop A Balloon" — edit the text inside each .balloon-message paragraph to personalize
 -->
 <html lang="en">
@@ -569,126 +569,51 @@
             transform: translateY(0);
         }
 
-        /* ---- Audio Player (new) ---- */
-        .audio-section {
+        /* ---- YouTube Link Section (replaces audio) ---- */
+        .youtube-section {
             padding: 40px 0 90px;
         }
 
-        .audio-card {
+        .youtube-card {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(6px);
             border-radius: 60px;
-            padding: 20px 28px;
+            padding: 24px 32px;
             box-shadow: var(--shadow-soft);
             max-width: 520px;
             margin: 0 auto;
             display: flex;
             align-items: center;
-            gap: 18px;
-            border: 1px solid rgba(255, 143, 171, 0.2);
-        }
-
-        .audio-card .play-btn {
-            flex-shrink: 0;
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            border: none;
-            background: linear-gradient(135deg, var(--blush-deep), var(--deep-rose));
-            color: #fff;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(164, 19, 60, 0.25);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            gap: 16px;
+            border: 1px solid rgba(255, 143, 171, 0.2);
+            text-decoration: none;
+            color: var(--charcoal);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .youtube-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 28px rgba(164, 19, 60, 0.2);
+        }
+
+        .youtube-card .youtube-icon {
+            font-size: 2.2rem;
             flex-shrink: 0;
         }
 
-        .audio-card .play-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(164, 19, 60, 0.35);
-        }
-
-        .audio-card .play-btn:active {
-            transform: scale(0.95);
-        }
-
-        .audio-card .play-btn .play-icon {
-            display: inline-block;
-            transition: transform 0.2s ease;
-            line-height: 1;
-        }
-
-        .audio-card .play-btn.playing .play-icon {
-            transform: scale(1.1);
-        }
-
-        .audio-progress-wrap {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .audio-progress-bar {
-            width: 100%;
-            height: 5px;
-            border-radius: 999px;
-            background: rgba(164, 19, 60, 0.15);
-            cursor: pointer;
-            position: relative;
-            transition: height 0.15s ease;
-        }
-
-        .audio-progress-bar:hover {
-            height: 7px;
-        }
-
-        .audio-progress-fill {
-            height: 100%;
-            width: 0%;
-            border-radius: 999px;
-            background: linear-gradient(90deg, var(--blush-deep), var(--deep-rose));
-            position: relative;
-            transition: width 0.05s linear;
-        }
-
-        .audio-progress-fill::after {
-            content: '';
-            position: absolute;
-            right: -5px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--deep-rose);
-            box-shadow: 0 0 8px rgba(164, 19, 60, 0.3);
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .audio-progress-bar:hover .audio-progress-fill::after {
-            opacity: 1;
-        }
-
-        .audio-time {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.7rem;
-            color: var(--text-soft);
-            margin-top: 4px;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-        }
-
-        .audio-label {
-            font-size: 0.75rem;
+        .youtube-card .youtube-text {
             font-weight: 600;
-            color: var(--deep-rose);
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .youtube-card .youtube-text small {
+            display: block;
+            font-weight: 400;
+            font-size: 0.85rem;
             opacity: 0.7;
-            letter-spacing: 0.5px;
-            flex-shrink: 0;
+            margin-top: 4px;
         }
 
         /* Confetti */
@@ -753,24 +678,14 @@
         }
 
         @media (max-width: 480px) {
-            .audio-card {
+            .youtube-card {
                 border-radius: 40px;
-                padding: 14px 18px;
-                gap: 12px;
-                flex-wrap: wrap;
-                justify-content: center;
+                padding: 18px 20px;
+                flex-direction: column;
+                gap: 8px;
             }
-            .audio-card .play-btn {
-                width: 44px;
-                height: 44px;
-                font-size: 1rem;
-            }
-            .audio-progress-wrap {
-                flex: 1 1 100%;
-                order: 3;
-            }
-            .audio-label {
-                font-size: 0.65rem;
+            .youtube-card .youtube-icon {
+                font-size: 1.8rem;
             }
             .balloon-grid {
                 gap: 24px 8px;
@@ -815,7 +730,7 @@
             <div class="container">
                 <h2 class="section-title">Memory Lane</h2>
                 <p class="section-subtitle">A few of my favorite pictures of you</p>
-                <!-- Images are now set to 1.jpg, 2.jpg, 3.jpg, 4.jpg – put those files in the same folder -->
+                <!-- Images are set to 1.jpg, 2.jpg, 3.jpg, 4.jpg – put those files in the same folder -->
                 <div class="memory-grid">
                     <div class="polaroid" style="--rot:-4deg">
                         <div class="polaroid-photo"><img src="1.jpg" alt="Meru 1"></div>
@@ -889,7 +804,7 @@
                         <p>Thank you for letting me be part of your story this year. For every late-night call, every inside joke nobody else gets, every random text that somehow always arrives at the right moment. You make ordinary days feel like something worth keeping.</p>
                         <p>Happy birthday, Meru. Here's to seventeen — and to us.</p>
                     </div>
-                    <p class="letter-signature">With everything, [Your Name]</p>
+                    <p class="letter-signature">With everything, Rohan</p>
                 </div>
             </div>
         </section>
@@ -916,34 +831,18 @@
             </div>
         </section>
 
-        <!-- ===== AUDIO PLAYER ===== -->
-        <section class="audio-section" id="audio-player">
+        <!-- ===== YOUTUBE LINK (replaces audio player) ===== -->
+        <section class="youtube-section" id="youtube">
             <div class="container">
                 <h2 class="section-title">Ig bare minimum</h2>
-                <p class="section-subtitle">A little tune for your ears 🎧</p>
-                <!-- Audio source is set to song.mp3 – put that file in the same folder -->
-                <div class="audio-card">
-                    <audio id="bg-music" loop preload="metadata">
-                        <source src="song.mp3" type="audio/mpeg">
-                        <!-- fallback: your browser doesn't support audio -->
-                    </audio>
-
-                    <button class="play-btn" id="play-btn" aria-label="Play music" aria-pressed="false">
-                        <span class="play-icon" aria-hidden="true">▶</span>
-                    </button>
-
-                    <div class="audio-progress-wrap">
-                        <div class="audio-progress-bar" id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Music progress">
-                            <div class="audio-progress-fill" id="progress-fill" style="width:0%;"></div>
-                        </div>
-                        <div class="audio-time">
-                            <span id="current-time">0:00</span>
-                            <span id="duration">0:00</span>
-                        </div>
-                    </div>
-
-                    <span class="audio-label" aria-hidden="true">♫</span>
-                </div>
+                <p class="section-subtitle">A little something to watch 🎬</p>
+                <a href="https://youtu.be/Te-xej8X_YI" target="_blank" rel="noopener noreferrer" class="youtube-card">
+                    <span class="youtube-icon" aria-hidden="true">▶️</span>
+                    <span class="youtube-text">
+                        Watch the video
+                        <small>opens in new tab</small>
+                    </span>
+                </a>
             </div>
         </section>
     </main>
@@ -951,7 +850,7 @@
     <footer>
         <div class="footer-heart" aria-hidden="true">💕</div>
         <p class="footer-text">Made with way too many late-night edits and all my love, for the best person I know.</p>
-        <p class="footer-sign">— [Your Name]</p>
+        <p class="footer-sign">— Rohan</p>
     </footer>
 
     <script>
@@ -1014,130 +913,6 @@
                 this.disabled = true;
                 this.textContent = 'Wish made 💫';
             });
-
-            // ---- AUDIO PLAYER ----
-            var audio = document.getElementById('bg-music');
-            var playBtn = document.getElementById('play-btn');
-            var playIcon = playBtn.querySelector('.play-icon');
-            var progressFill = document.getElementById('progress-fill');
-            var progressBar = document.getElementById('progress-bar');
-            var currentTimeEl = document.getElementById('current-time');
-            var durationEl = document.getElementById('duration');
-
-            var isPlaying = false;
-
-            function formatTime(seconds) {
-                if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
-                var m = Math.floor(seconds / 60);
-                var s = Math.floor(seconds % 60);
-                return m + ':' + (s < 10 ? '0' : '') + s;
-            }
-
-            function updateProgress() {
-                if (!audio.duration || isNaN(audio.duration)) return;
-                var pct = (audio.currentTime / audio.duration) * 100;
-                progressFill.style.width = pct + '%';
-                progressBar.setAttribute('aria-valuenow', Math.round(pct));
-                currentTimeEl.textContent = formatTime(audio.currentTime);
-            }
-
-            function updateDuration() {
-                if (audio.duration && !isNaN(audio.duration)) {
-                    durationEl.textContent = formatTime(audio.duration);
-                }
-            }
-
-            function togglePlay() {
-                if (audio.paused) {
-                    audio.play().then(function() {
-                        isPlaying = true;
-                        playBtn.classList.add('playing');
-                        playIcon.textContent = '⏸';
-                        playBtn.setAttribute('aria-pressed', 'true');
-                        playBtn.setAttribute('aria-label', 'Pause music');
-                    }).catch(function() {
-                        // playback blocked or file missing
-                        isPlaying = false;
-                        playBtn.classList.remove('playing');
-                        playIcon.textContent = '▶';
-                        playBtn.setAttribute('aria-pressed', 'false');
-                        playBtn.setAttribute('aria-label', 'Play music');
-                    });
-                } else {
-                    audio.pause();
-                    isPlaying = false;
-                    playBtn.classList.remove('playing');
-                    playIcon.textContent = '▶';
-                    playBtn.setAttribute('aria-pressed', 'false');
-                    playBtn.setAttribute('aria-label', 'Play music');
-                }
-            }
-
-            playBtn.addEventListener('click', togglePlay);
-
-            audio.addEventListener('timeupdate', updateProgress);
-            audio.addEventListener('loadedmetadata', function() {
-                updateDuration();
-                if (!audio.duration || isNaN(audio.duration)) {
-                    setTimeout(updateDuration, 200);
-                }
-            });
-            audio.addEventListener('canplay', function() {
-                updateDuration();
-            });
-
-            progressBar.addEventListener('click', function(e) {
-                if (!audio.duration || isNaN(audio.duration)) return;
-                var rect = progressBar.getBoundingClientRect();
-                var x = (e.clientX - rect.left) / rect.width;
-                var newTime = x * audio.duration;
-                audio.currentTime = newTime;
-                updateProgress();
-            });
-
-            progressBar.addEventListener('keydown', function(e) {
-                if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    audio.currentTime = Math.min(audio.currentTime + 5, audio.duration);
-                    updateProgress();
-                } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    audio.currentTime = Math.max(audio.currentTime - 5, 0);
-                    updateProgress();
-                }
-            });
-
-            audio.addEventListener('ended', function() {
-                if (audio.loop) {
-                    // loop will handle it
-                } else {
-                    isPlaying = false;
-                    playBtn.classList.remove('playing');
-                    playIcon.textContent = '▶';
-                    playBtn.setAttribute('aria-pressed', 'false');
-                    playBtn.setAttribute('aria-label', 'Play music');
-                    progressFill.style.width = '0%';
-                    currentTimeEl.textContent = '0:00';
-                }
-            });
-
-            audio.addEventListener('error', function() {
-                console.warn('Audio file not found or unsupported. Please add song.mp3 or update the src.');
-            });
-
-            progressBar.addEventListener('touchstart', function(e) {
-                if (!audio.duration || isNaN(audio.duration)) return;
-                var rect = progressBar.getBoundingClientRect();
-                var touch = e.touches[0];
-                var x = (touch.clientX - rect.left) / rect.width;
-                var newTime = x * audio.duration;
-                audio.currentTime = newTime;
-                updateProgress();
-            }, { passive: true });
-
-            if (audio.readyState >= 1) {
-                updateDuration();
-            }
 
         })();
     </script>
